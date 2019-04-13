@@ -60,8 +60,8 @@ class Configuration():
         return hasattr(self, attribute) and getattr(self, attribute) is not None
 
     def __str__(self):
-        keys = self.__dict__.keys()
-        vals = self.__dict__.values()
+        keys = list(self.__dict__.keys())
+        vals = list(self.__dict__.values())
         index = np.argsort(keys)
         res = ''
         for i in index:
@@ -79,7 +79,7 @@ class Configuration():
 
     @staticmethod
     def load(file_name):
-        return unpickle_data(file_name + '.pickle').next()
+        return next(unpickle_data(file_name + '.pickle'))
 
 
 class AutoEncoder(Neural_Net):
@@ -101,7 +101,7 @@ class AutoEncoder(Neural_Net):
                 self.gt = tf.placeholder(tf.float32, out_shape)
             else:
                 self.gt = self.x
-   
+
     def partial_fit(self, X, GT=None):
         '''Trains the model with mini-batches of input data.
         If GT is not None, then the reconstruction loss compares the output of the net that is fed X, with the GT.
@@ -166,7 +166,7 @@ class AutoEncoder(Neural_Net):
         if c.saver_step is not None:
             create_dir(c.train_dir)
 
-        for _ in xrange(c.training_epochs):
+        for _ in range(c.training_epochs):
             loss, duration = self._single_epoch_train(train_data, c)
             epoch = int(self.sess.run(self.increment_epoch))
             stats.append((epoch, loss, duration))
@@ -209,7 +209,7 @@ class AutoEncoder(Neural_Net):
 
         b = configuration.batch_size
         reconstructions = np.zeros([n_examples] + self.n_output)
-        for i in xrange(0, n_examples, b):
+        for i in range(0, n_examples, b):
             if self.is_denoising:
                 reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
             else:
@@ -223,7 +223,7 @@ class AutoEncoder(Neural_Net):
             return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data), pre_aug
         else:
             return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data)
-        
+
     def embedding_at_tensor(self, dataset, conf, feed_original=True, apply_augmentation=False, tensor_name='bottleneck'):
         '''
         Observation: the NN-neighborhoods seem more reasonable when we do not apply the augmentation.
@@ -256,9 +256,9 @@ class AutoEncoder(Neural_Net):
 
         embedding = np.vstack(embedding)
         return feed, embedding, ids
-        
+
     def get_latent_codes(self, pclouds, batch_size=100):
-        ''' Convenience wrapper of self.transform to get the latent (bottle-neck) codes for a set of input point 
+        ''' Convenience wrapper of self.transform to get the latent (bottle-neck) codes for a set of input point
         clouds.
         Args:
             pclouds (N, K, 3) numpy array of N point clouds with K points each.

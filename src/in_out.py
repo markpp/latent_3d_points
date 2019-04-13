@@ -4,9 +4,9 @@ import numpy as np
 import os
 import os.path as osp
 import re
-from six.moves import cPickle
+import pickle
+import random
 from multiprocessing import Pool
-
 from . general_utils import rand_rotation_matrix
 from .. external.python_plyfile.plyfile import PlyElement, PlyData
 
@@ -52,9 +52,9 @@ def pickle_data(file_name, *args):
     '''Using (c)Pickle to save multiple python objects in a single file.
     '''
     myFile = open(file_name, 'wb')
-    cPickle.dump(len(args), myFile, protocol=2)
+    pickle.dump(len(args), myFile, protocol=2)
     for item in args:
-        cPickle.dump(item, myFile, protocol=2)
+        pickle.dump(item, myFile, protocol=2)
     myFile.close()
 
 
@@ -62,9 +62,9 @@ def unpickle_data(file_name):
     '''Restore data previously saved with pickle_data().
     '''
     inFile = open(file_name, 'rb')
-    size = cPickle.load(inFile)
-    for _ in xrange(size):
-        yield cPickle.load(inFile)
+    size = pickle.load(inFile)
+    for _ in range(size):
+        yield pickle.load(inFile)
     inFile.close()
 
 
@@ -101,7 +101,7 @@ def load_ply(file_name, with_faces=False, with_color=False):
 
 
 def pc_loader(f_name):
-    ''' loads a point-cloud saved under ShapeNet's "standar" folder scheme: 
+    ''' loads a point-cloud saved under ShapeNet's "standar" folder scheme:
     i.e. /syn_id/model_name.ply
     '''
     tokens = f_name.split('/')
@@ -208,7 +208,31 @@ class PointCloudDataSet(object):
         end = self._index_in_epoch
 
         if self.noisy_point_clouds is None:
-            return self.point_clouds[start:end], self.labels[start:end], None
+            #return self.point_clouds[start:end], self.labels[start:end], None
+            
+            batch = self.point_clouds[start:end].copy()
+            translate_range = 0.5
+            #translate_range = (self.epochs_completed/100) * 0.01
+            #if(self.epochs_completed % 101 == 0):
+                #print("translate_range: {}".format(translate_range))
+            '''
+            x_offset = random.uniform(-translate_range, translate_range)
+            y_offset = random.uniform(-translate_range, translate_range)
+            z_offset = random.uniform(-translate_range, translate_range)
+            batch[:,:,0] = np.add(batch[:,:,0],x_offset)
+            batch[:,:,1] = np.add(batch[:,:,1],y_offset)
+            batch[:,:,2] = np.add(batch[:,:,2],z_offset)
+            '''
+            # individual
+            for pc in batch:
+                x_offset = random.uniform(-translate_range, translate_range)
+                y_offset = random.uniform(-translate_range, translate_range)
+                z_offset = random.uniform(-translate_range, translate_range)
+                pc[:,0] = np.add(pc[:,0],x_offset)
+                pc[:,1] = np.add(pc[:,1],y_offset)
+                pc[:,2] = np.add(pc[:,2],z_offset)
+
+            return batch, self.labels[start:end], None
         else:
             return self.point_clouds[start:end], self.labels[start:end], self.noisy_point_clouds[start:end]
 

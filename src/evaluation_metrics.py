@@ -21,14 +21,14 @@ from . general_utils import iterate_in_chunks, unit_cube_grid_point_cloud
 try:
     from sklearn.neighbors import NearestNeighbors
 except:
-    print ('Sklearn module not installed (JSD metric will not work).')
+    print('Sklearn module not installed (JSD metric will not work).')
 
-try:    
+try:
     from .. external.structural_losses.tf_nndistance import nn_distance
     from .. external.structural_losses.tf_approxmatch import approx_match, match_cost
 except:
-    print('External Losses (Chamfer-EMD) cannot be loaded. Please install them first.')
-    
+    print('eval_metr: External Losses (Chamfer-EMD) cannot be loaded. Please install them first.')
+
 
 def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=True, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
     ''' Produces the graph operations necessary to compute the MMD and consequently also the Coverage due to their 'symmetric' nature.
@@ -42,7 +42,7 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=Tr
             use a constant batch size for iterating the sample point-clouds you can
             specify it hear to speed up the compute. Alternatively, the code is adapted
             to read the batch size dynamically.
-        normalize (boolean): if True, the matched distances are normalized by diving them with 
+        normalize (boolean): if True, the matched distances are normalized by diving them with
             the number of points of the compared point-clouds (n_pc_points).
         use_sqrt (boolean): When the matching is based on Chamfer (default behavior), if True,
             the Chamfer is computed based on the (not-squared) euclidean distances of the
@@ -97,7 +97,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=True, se
             "reference" point-clouds.
         batch_size (int): specifies how large will the batches be that the compute will use to make
             the comparisons of the sample-vs-ref point-clouds.
-        normalize (boolean): if True, the distances are normalized by diving them with 
+        normalize (boolean): if True, the distances are normalized by diving them with
             the number of the points of the point-clouds (n_pc_points).
         use_sqrt: (boolean): When the matching is based on Chamfer (default behavior), if True, the
             Chamfer is computed based on the (not-squared) euclidean distances of the matched point-wise
@@ -122,7 +122,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=True, se
     for i in xrange(n_ref):
         best_in_all_batches = []
         if verbose and i % 50 == 0:
-            print i
+            print(i)
         for sample_chunk in iterate_in_chunks(sample_pcs, batch_size):
             feed_dict = {ref_pl: np.expand_dims(ref_pcs[i], 0), sample_pl: sample_chunk}
             b = sess.run(best_in_batch, feed_dict=feed_dict)
@@ -142,7 +142,7 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose
             set of "reference" point-clouds.
         batch_size (int): specifies how large will the batches be that the compute will use to
             make the comparisons of the sample-vs-ref point-clouds.
-        normalize (boolean): if True, the distances are normalized by diving them with 
+        normalize (boolean): if True, the distances are normalized by diving them with
             the number of the points of the point-clouds (n_pc_points).
         use_sqrt  (boolean): When the matching is based on Chamfer (default behavior), if True,
             the Chamfer is computed based on the (not-squared) euclidean distances of the matched
@@ -171,7 +171,7 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose
         loc_in_all_batches = []
 
         if verbose and i % 50 == 0:
-            print i
+            print(i)
 
         for ref_chunk in iterate_in_chunks(ref_pcs, batch_size):
             feed_dict = {ref_pl: np.expand_dims(sample_pcs[i], 0), sample_pl: ref_chunk}
@@ -194,17 +194,17 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose
 
 
 def jsd_between_point_cloud_sets(sample_pcs, ref_pcs, resolution=28):
-    '''Computes the JSD between two sets of point-clouds, as introduced in the paper ```Learning Representations And Generative Models For 3D Point Clouds```.    
+    '''Computes the JSD between two sets of point-clouds, as introduced in the paper ```Learning Representations And Generative Models For 3D Point Clouds```.
     Args:
         sample_pcs: (np.ndarray S1xR2x3) S1 point-clouds, each of R1 points.
         ref_pcs: (np.ndarray S2xR2x3) S2 point-clouds, each of R2 points.
         resolution: (int) grid-resolution. Affects granularity of measurements.
-    '''   
+    '''
     in_unit_sphere = True
     sample_grid_var = entropy_of_occupancy_grid(sample_pcs, resolution, in_unit_sphere)[1]
     ref_grid_var = entropy_of_occupancy_grid(ref_pcs, resolution, in_unit_sphere)[1]
     return jensen_shannon_divergence(sample_grid_var, ref_grid_var)
-    
+
 def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     '''Given a collection of point-clouds, estimate the entropy of the random variables
     corresponding to occupancy-grid activation patterns.

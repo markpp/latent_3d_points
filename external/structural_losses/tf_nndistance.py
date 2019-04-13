@@ -17,7 +17,7 @@ def nn_distance(xyz1, xyz2):
 	output: dist2: (batch_size,#point_2)   distance from second to first
 	output: idx2:  (batch_size,#point_2)   nearest neighbor from second to first
 	'''
-	
+
 	return nn_distance_module.nn_distance(xyz1,xyz2)
 
 #@tf.RegisterShape('NnDistance')
@@ -60,7 +60,7 @@ if __name__=='__main__':
 			trainloss,_=sess.run([loss,train])
 			newt=time.time()
 			best=min(best,newt-t1)
-			print i,trainloss,(newt-t0)/(i+1),best
+			print(i,trainloss,(newt-t0)/(i+1),best)
 			t1=newt
 		#print sess.run([inp1,retb,inp2,retd])
 		#grads=compute_gradient([inp1,inp2],[(16,32,3),(16,32,3)],loss,(1,),[xyz1,xyz2])
@@ -81,4 +81,3 @@ if __name__=='__main__':
 		#idx2=((xyz2[:,samples,None,:]-xyz1[:,None,:,:])**2).sum(axis=-1).argmin(axis=-1)
 		#print np.abs(dist2-c[:,samples]).max()
 		#print np.abs(idx2-d[:,samples]).max()
-

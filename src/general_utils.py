@@ -9,7 +9,6 @@ from numpy.linalg import norm
 import matplotlib.pylab  as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-
 def rand_rotation_matrix(deflection=1.0, seed=None):
     '''Creates a random rotation matrix.
 
@@ -56,10 +55,10 @@ def iterate_in_chunks(l, n):
     '''Yield successive 'n'-sized chunks from iterable 'l'.
     Note: last chunk will be smaller than l if n doesn't divide l perfectly.
     '''
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]
 
-        
+
 def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
     gnoise = np.random.normal(mu, sigma, pcloud.shape[0])
     gnoise = np.tile(gnoise, (3, 1)).T
@@ -84,6 +83,8 @@ def apply_augmentations(batch, conf):
         r_rotation[2, 1] = 0
         r_rotation[2, 2] = 1
         batch = batch.dot(r_rotation)
+
+    # doing translation augmentation her breaks things...?
     return batch
 
 
@@ -111,7 +112,7 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_u_sphere=False, m
 
     if axis is None:
         fig = plt.figure(figsize=figsize)
-        ax = fig.add_subplot(111, projection='3d')        
+        ax = fig.add_subplot(111, projection='3d')
     else:
         ax = axis
         fig = axis
@@ -125,7 +126,7 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_u_sphere=False, m
     if in_u_sphere:
         ax.set_xlim3d(-0.5, 0.5)
         ax.set_ylim3d(-0.5, 0.5)
-        ax.set_zlim3d(-0.5, 0.5)
+        ax.set_zlim3d(0.5, 1.5)
     else:
         miv = 0.7 * np.min([np.min(x), np.min(y), np.min(z)])  # Multiply with 0.7 to squeeze free-space.
         mav = 0.7 * np.max([np.max(x), np.max(y), np.max(z)])
@@ -141,6 +142,8 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_u_sphere=False, m
         plt.colorbar(sc)
 
     if show:
-        plt.show()
+        plt.draw()
+        plt.pause(0.01)
 
-    return fig
+
+    return fig, ax
