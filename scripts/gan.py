@@ -114,7 +114,7 @@ if __name__ == '__main__':
         g_loss = [t[2] for t in train_stats]
         plt.plot(x, d_loss, '--')
         plt.plot(x, g_loss)
-        plt.title('GAN training. (%s)' %(class_name))
+        plt.title('GAN training.')
         plt.legend(['Discriminator', 'Generator'], loc=0)
 
         plt.tick_params(axis='x', which='both', bottom='off', top='off')
