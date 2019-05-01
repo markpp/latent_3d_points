@@ -40,6 +40,7 @@ if __name__ == '__main__':
     for idx, point_file in enumerate(pc_files[:]):
         cloud = PyntCloud.from_file(point_file)
         test_pcs[idx, :, :] = cloud.points[:2048]
+    np.save("pcs",np.array(test_pcs))
 
     reset_tf_graph()
     ae_configuration = 'input/configuration'

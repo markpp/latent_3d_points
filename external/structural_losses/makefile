@@ -24,4 +24,4 @@ tf_nndistance_g.cu.o: tf_nndistance_g.cu
 clean:
 	rm tf_approxmatch_so.so
 	rm tf_nndistance_so.so
-	rm  *.cu.o 
+	rm  *.cu.o

@@ -16,10 +16,10 @@ from . autoencoder import AutoEncoder
 from . general_utils import apply_augmentations
 
 
-import os
-print("loading custom losses relative to: {}".format(os.getcwd()))
 from .. external.structural_losses.tf_nndistance import nn_distance
 from .. external.structural_losses.tf_approxmatch import approx_match, match_cost
+import os
+print("done loading custom losses relative to: {}".format(os.getcwd()))
 
 class PointNetAutoEncoder(AutoEncoder):
     '''

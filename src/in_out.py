@@ -209,9 +209,9 @@ class PointCloudDataSet(object):
 
         if self.noisy_point_clouds is None:
             #return self.point_clouds[start:end], self.labels[start:end], None
-            
+
             batch = self.point_clouds[start:end].copy()
-            translate_range = 0.5
+            translate_range = 0.2
             #translate_range = (self.epochs_completed/100) * 0.01
             #if(self.epochs_completed % 101 == 0):
                 #print("translate_range: {}".format(translate_range))

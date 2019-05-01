@@ -11,8 +11,8 @@ from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc
 def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
     ''' Single class experiments.
     '''
-    if n_pc_points != 2048:
-        raise ValueError()
+    #if n_pc_points != 2048:
+    #    raise ValueError()
 
     encoder = encoder_with_convs_and_symmetry
     decoder = decoder_with_fc_only
@@ -43,7 +43,7 @@ def default_train_params(single_class=True):
     params = {'batch_size': 50,
               'training_epochs': 500,
               'denoising': False,
-              'learning_rate': 0.0001,
+              'learning_rate': 0.001,
               'z_rotate': False,
               'saver_step': 500,
               'loss_display_step': 10

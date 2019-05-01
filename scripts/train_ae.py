@@ -27,13 +27,13 @@ if __name__ == '__main__':
 
     top_out_dir = '../data/'          # Use to save Neural-Net check-points etc.
 
-    experiment_name = 'ear_ae'
-    n_pc_points = 2048                # Number of points per model.
+    experiment_name = 'ear_1024_ae_64'
+    n_pc_points = 1024                # Number of points per model.
     bneck_size = 64                  # Bottleneck-AE size
     ae_loss = 'emd'                   # Loss to optimize: 'emd' or 'chamfer'
 
-    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/ear_data/unordered/train/', n_threads=8, file_ending='.ply', verbose=True)
-    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/ear_data/unordered/val/', n_threads=8, file_ending='.ply', verbose=True)
+    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/ear_1024/train/', n_threads=4, file_ending='.ply', verbose=True)
+    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/ear_1024/val/', n_threads=4, file_ending='.ply', verbose=True)
     print("batch size must be larger than train {} and val {} set".format(train_pc_data.num_examples,val_pc_data.num_examples))
 
     if TRAIN:
@@ -62,7 +62,7 @@ if __name__ == '__main__':
                                  # held_out data (if they are provided in ae.train() ).
         conf.save(osp.join(train_dir, 'configuration'))
 
-    load_pre_trained_ae = True
+    load_pre_trained_ae = False
     if load_pre_trained_ae:
         conf = Conf.load(osp.join(top_out_dir, experiment_name) + '/configuration')
         reset_tf_graph()
@@ -72,8 +72,8 @@ if __name__ == '__main__':
 
 
     if TRAIN:
-        #reset_tf_graph()
-        #ae = PointNetAutoEncoder(conf.experiment_name, conf)
+        reset_tf_graph()
+        ae = PointNetAutoEncoder(conf.experiment_name, conf)
 
         buf_size = 1 # Make 'training_stats' file to flush each output line regarding training.
         fout = open(osp.join(conf.train_dir, 'train_stats.txt'), 'a', buf_size)
