@@ -1,2 +1,0 @@
-/home/dmri/Documents/github/latent_3d_points/scripts/3092_20180828_104856.000_0_2048.ply
-/home/dmri/Documents/github/latent_3d_points/scripts/3097_20180828_113414.000_0_2048.ply

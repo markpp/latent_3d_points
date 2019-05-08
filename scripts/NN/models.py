@@ -10,16 +10,17 @@ from keras.layers import Flatten
 from keras.layers import Input
 from keras.models import Model
 
-def create_mlp(dim, regress=False):
+def create_mlp(in_dim, out_dim, regress=False):
 	# define our MLP network
 	model = Sequential()
-	model.add(Dense(64, input_dim=dim, activation="tanh"))
-	model.add(Dense(32, activation="tanh"))
+	model.add(Dense(32, input_dim=in_dim, activation="tanh"))
+	model.add(Dense(24, activation="tanh"))
 	model.add(Dense(16, activation="tanh"))
+	model.add(Dense(10, activation="tanh"))
 
 	# check to see if the regression node should be added
 	if regress:
-		model.add(Dense(3, activation="linear"))
+		model.add(Dense(out_dim))
 
 	# return our model
 	return model

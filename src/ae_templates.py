@@ -8,6 +8,37 @@ import numpy as np
 from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
 
 
+def mlp_architecture_ala_iclr_18_small(n_pc_points, bneck_size, bneck_post_mlp=False):
+    ''' Single class experiments.
+    '''
+    #if n_pc_points != 2048:
+    #    raise ValueError()
+
+    encoder = encoder_with_convs_and_symmetry
+    decoder = decoder_with_fc_only
+
+    n_input = [n_pc_points, 3]
+
+    encoder_args = {'n_filters': [32, 64, 64, 128, bneck_size],
+                    'filter_sizes': [1],
+                    'strides': [1],
+                    'b_norm': True,
+                    'verbose': True
+                    }
+
+    decoder_args = {'layer_sizes': [128, 128, np.prod(n_input)],
+                    'b_norm': False,
+                    'b_norm_finish': False,
+                    'verbose': True
+                    }
+
+    if bneck_post_mlp:
+        encoder_args['n_filters'].pop()
+        decoder_args['layer_sizes'][0] = bneck_size
+
+    return encoder, decoder, encoder_args, decoder_args
+
+
 def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
     ''' Single class experiments.
     '''
@@ -38,19 +69,14 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
 
     return encoder, decoder, encoder_args, decoder_args
 
-
 def default_train_params(single_class=True):
-    params = {'batch_size': 50,
-              'training_epochs': 500,
+    params = {'batch_size': 64,
+              'training_epochs': 100000,
               'denoising': False,
-              'learning_rate': 0.001,
+              'learning_rate': 0.0005,
               'z_rotate': False,
-              'saver_step': 500,
-              'loss_display_step': 10
+              'saver_step': 1000,
+              'loss_display_step': 100
               }
-
-    if not single_class:
-        #params['z_rotate'] = True
-        params['training_epochs'] = 20000
 
     return params

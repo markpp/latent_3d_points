@@ -8,6 +8,8 @@ from latent_3d_points.src.autoencoder import Configuration as Conf
 from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
+model_dir = 'trained_model/zeroedrot'
+restore_epoch = 20000
 
 def points2file(points,filename):
     df = pd.DataFrame(points,columns=['x', 'y', 'z'])
@@ -21,27 +23,30 @@ if __name__ == '__main__':
         -p path/<filename>.npy
     """
     # construct the argument parser and parse the arguments
+    '''
     ap = argparse.ArgumentParser()
     ap.add_argument("-e", "--enc", type=str,
                     help="numpy saved array")
     args = vars(ap.parse_args())
 
     enc = np.load(args["enc"])
-
+    '''
+    enc = np.load("output/latent.npy")
+    names = np.load("output/names.npy")
 
 
     reset_tf_graph()
-    ae_configuration = 'input/configuration'
+    ae_configuration = model_dir+'/configuration'
     ae_conf = Conf.load(ae_configuration)
     ae_conf.encoder_args['verbose'] = False
     ae_conf.decoder_args['verbose'] = False
     ae = PointNetAutoEncoder(ae_conf.experiment_name, ae_conf)
 
-    restore_epoch = 3000
-    ae.restore_model('model/3', restore_epoch, verbose=True)
-
+    ae.restore_model(model_dir, restore_epoch, verbose=True)
 
     reconstructions = ae.decode(enc)
 
-    id = 0
-    points2file(reconstructions[id],"rec_{}.ply".format(id))
+    for id in range(0,3):
+    #for id in range(0,len(reconstructions)):
+        print(names[id])
+        points2file(reconstructions[id],"output/rec_{}".format(names[id]))

@@ -209,20 +209,13 @@ class PointCloudDataSet(object):
 
         if self.noisy_point_clouds is None:
             #return self.point_clouds[start:end], self.labels[start:end], None
-
+            #'''
             batch = self.point_clouds[start:end].copy()
             translate_range = 0.2
             #translate_range = (self.epochs_completed/100) * 0.01
             #if(self.epochs_completed % 101 == 0):
                 #print("translate_range: {}".format(translate_range))
-            '''
-            x_offset = random.uniform(-translate_range, translate_range)
-            y_offset = random.uniform(-translate_range, translate_range)
-            z_offset = random.uniform(-translate_range, translate_range)
-            batch[:,:,0] = np.add(batch[:,:,0],x_offset)
-            batch[:,:,1] = np.add(batch[:,:,1],y_offset)
-            batch[:,:,2] = np.add(batch[:,:,2],z_offset)
-            '''
+
             # individual
             for pc in batch:
                 x_offset = random.uniform(-translate_range, translate_range)
@@ -233,6 +226,7 @@ class PointCloudDataSet(object):
                 pc[:,2] = np.add(pc[:,2],z_offset)
 
             return batch, self.labels[start:end], None
+            #'''
         else:
             return self.point_clouds[start:end], self.labels[start:end], self.noisy_point_clouds[start:end]
 

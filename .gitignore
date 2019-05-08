@@ -5,6 +5,12 @@
 *.pyc
 *.nfs*
 data/*
+trained_model/*
 external/structural_losses/*.o
 external/structural_losses/*.so
 *.png
+*.ply
+*.pickle
+*.json
+*.gz
+*.npy
