@@ -9,7 +9,7 @@ from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
 n_points = 1024
-model_dir = 'trained_model/zeroedrot'
+model_dir = 'trained_model/zero_dist_sampling'
 restore_epoch = 20000
 
 if __name__ == '__main__':
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         pcs[idx, :, :] = cloud.points[:n_points]
 
         # load annotation
-        pose_path = pc_path[:-4]+".json"
+        pose_path = pc_path[:-9]+".json"
         #print(pose_path)
         with open(pose_path) as pose_file:
             jp = json.load(pose_file)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     np.save("output/names",np.array(names))
     np.save("output/anno",np.array(anno))
-    #np.save("output/pcs",pcs)
+    np.save("output/pcs",pcs)
 
     reset_tf_graph()
     ae_configuration = model_dir+'/configuration'

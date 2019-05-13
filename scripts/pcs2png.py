@@ -15,9 +15,9 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_fixed_range=False
     sc = ax.scatter(x, y, z, marker=marker, s=s, alpha=alpha, *args, **kwargs)
     ax.view_init(elev=elev, azim=azim)
     if in_fixed_range:
-        ax.set_xlim3d(-0.5, 0.5)
-        ax.set_ylim3d(-0.5, 0.5)
-        ax.set_zlim3d(0.5, 1.5)
+        ax.set_xlim3d(-0.25, 0.25)
+        ax.set_ylim3d(-0.25, 0.25)
+        ax.set_zlim3d(-0.25, 0.25)
     else:
         miv = 0.7 * np.min([np.min(x), np.min(y), np.min(z)])  # Multiply with 0.7 to squeeze free-space.
         mav = 0.7 * np.max([np.max(x), np.max(y), np.max(z)])
@@ -35,7 +35,7 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_fixed_range=False
 
 if __name__ == '__main__':
 
-    pcs = np.load("pcs.npy")
+    pcs = np.load("output/pcs.npy")
 
     print(pcs.shape)
     print(pcs[0].shape)
@@ -49,4 +49,4 @@ if __name__ == '__main__':
         if idx % 100 == 0:
             print("done with idx: {}".format(idx))
     print(views[0].shape)
-    np.save("views.npy", np.array(views))
+    np.save("output/views.npy", np.array(views))

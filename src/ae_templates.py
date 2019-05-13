@@ -70,13 +70,13 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
     return encoder, decoder, encoder_args, decoder_args
 
 def default_train_params(single_class=True):
-    params = {'batch_size': 64,
+    params = {'batch_size': 128,
               'training_epochs': 100000,
               'denoising': False,
               'learning_rate': 0.0005,
               'z_rotate': False,
-              'saver_step': 1000,
-              'loss_display_step': 100
+              'saver_step': 5000,
+              'loss_display_step': 25
               }
 
     return params

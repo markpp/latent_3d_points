@@ -17,9 +17,9 @@ if __name__ == '__main__':
     n_pc_points = 1024               # Number of points per model.
     bneck_size = 16                  # Bottleneck-AE size
     ae_loss = 'emd'                  # Loss to optimize: 'emd' or 'chamfer'
-    experiment_name = 'rot_trans_ear_ae_{}_{}_{}'.format(ae_loss,n_pc_points,bneck_size)
-    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/hanging_1024/train/', n_threads=8, file_ending='.ply', verbose=True)
-    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/hanging_1024/val/', n_threads=8, file_ending='.ply', verbose=True)
+    experiment_name = 'zeroed_newsampling_aug10cm_{}_{}_{}'.format(ae_loss,n_pc_points,bneck_size)
+    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/hanging_new_sampling/train/', n_threads=8, file_ending='.ply', verbose=True)
+    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/hanging_new_sampling/val/', n_threads=8, file_ending='.ply', verbose=True)
     print("batch size should be < {} and {}".format(train_pc_data.num_examples,val_pc_data.num_examples))
 
     if TRAIN:
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                 decoder_args = dec_args
                )
         conf.experiment_name = experiment_name
-        conf.held_out_step = 100   # How often to evaluate/print out loss on
+        conf.held_out_step = 50   # How often to evaluate/print out loss on
         conf.save(osp.join(train_dir, 'configuration'))
         conf = Conf.load(osp.join(top_out_dir, experiment_name) + '/configuration')
 

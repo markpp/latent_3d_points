@@ -5,9 +5,6 @@
 from keras.optimizers import Adam
 from keras.models import model_from_json
 
-from sklearn.preprocessing import normalize
-
-
 from NN import models
 import numpy as np
 import math
@@ -15,6 +12,8 @@ from pyntcloud import PyntCloud
 import pandas as pd
 import json
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 TRAIN = True
 
 def pose2cloud(pose,filename):
@@ -89,6 +88,25 @@ def vecs2quad(nf,nu,nl):
     w = (m01 - m10) * num2;
     return [x,y,z,w];
 
+def evaluate_point_normal(gts,preds):
+    #diff = np.abs(gts-preds)
+    res = []
+    for i in range(len(gts)):
+        diff = np.abs(gts[i]-preds[i])
+        res.append(diff[:3])
+        #angles = [np.arctan2(math.sqrt(diff[4]*diff[4]+diff[5]*diff[5]), diff[3]),
+        #          np.arctan2(math.sqrt(diff[3]*diff[3]+diff[5]*diff[5]), diff[4]),
+        #          np.arctan2(math.sqrt(diff[4]*diff[4]+diff[3]*diff[3]), diff[5])]
+        #res.append(np.concatenate((diff,angles),axis=0))
+
+    #df = pd.DataFrame(np.array(res),columns=['dx', 'dy', 'dz', 'dnx', 'dny', 'dnz', 'ax', 'ay', 'az'])
+    df = pd.DataFrame(np.array(res),columns=['dx', 'dy', 'dz'])
+    print(df.describe())
+    ax = sns.boxplot(data=df)
+    ax.set_title('Absolute error compared to demo')
+    ax.set_ylabel('[m]')
+    plt.savefig('err.png')
+    plt.show()
 if __name__ == '__main__':
     """
     Main function for executing the .py script.
@@ -99,7 +117,7 @@ if __name__ == '__main__':
     y = np.load("output/anno.npy")
     names = np.load("output/names.npy")
 
-    testset_end = 2000
+    testset_end = 200
     test_x = x[:testset_end]
     #test_y = y[:100,0]
     test_y = y[:testset_end,:]
@@ -119,7 +137,7 @@ if __name__ == '__main__':
         # train the model
         print("[INFO] training model...")
         print("train_x {}, train_y {}, test_x {}, test_y {}".format(train_x.shape,train_y.shape,test_x.shape,test_y.shape))
-        model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=200, batch_size=128)
+        model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=300, batch_size=128)
 
         # serialize model to JSON
         model_json = model.to_json()
@@ -147,12 +165,12 @@ if __name__ == '__main__':
     print("[INFO] predicting...")
     preds = model.predict(x)
 
+    evaluate_point_normal(y, preds)
 
-    ids = [0,5000]
+    ids = [0,1000]
     for id in ids:
         name = names[id][:-4]
-        print(name)
-        pose2cloud(preds[id],"output/pred-gt_{}.ply".format(names[id]))
+        #pose2cloud(preds[id],"output/pred-gt_{}.ply".format(names[id]))
 
         pose2json(y[id], 'output/gt_{}.json'.format(names[id]))
         pose2json(preds[id], 'output/pred_{}.json'.format(names[id]))
