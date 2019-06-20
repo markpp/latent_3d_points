@@ -1,6 +1,6 @@
 import os.path as osp
 
-from latent_3d_points.src.ae_templates import mlp_architecture_ala_iclr_18, default_train_params
+from latent_3d_points.src.ae_templates import mlp_architecture_ala_iclr_18_small, default_train_params
 from latent_3d_points.src.autoencoder import Configuration as Conf
 from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.in_out import snc_category_to_synth_id, create_dir, PointCloudDataSet, \
@@ -10,21 +10,21 @@ from latent_3d_points.src.general_utils import plot_3d_point_cloud
 
 TRAIN = True
 load_pre_trained_ae = False
-restore_epoch = 32500
+restore_epoch = 0
 
 if __name__ == '__main__':
     top_out_dir = '../data/'         # Use to save Neural-Net check-points etc.
     n_pc_points = 1024               # Number of points per model.
     bneck_size = 16                  # Bottleneck-AE size
     ae_loss = 'emd'                  # Loss to optimize: 'emd' or 'chamfer'
-    experiment_name = 'zeroed_newsampling_aug10cm_{}_{}_{}'.format(ae_loss,n_pc_points,bneck_size)
-    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/hanging_new_sampling/train/', n_threads=8, file_ending='.ply', verbose=True)
-    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/hanging_new_sampling/val/', n_threads=8, file_ending='.ply', verbose=True)
+    experiment_name = 'kin_laying_aug2mm_small_model_{}_{}_{}'.format(ae_loss,n_pc_points,bneck_size)
+    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/kin_laying/train/', n_threads=8, file_ending='.ply', verbose=True)
+    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/kin_laying/val/', n_threads=8, file_ending='.ply', verbose=True)
     print("batch size should be < {} and {}".format(train_pc_data.num_examples,val_pc_data.num_examples))
 
     if TRAIN:
         train_params = default_train_params(single_class=False)
-        encoder, decoder, enc_args, dec_args = mlp_architecture_ala_iclr_18(n_pc_points, bneck_size)
+        encoder, decoder, enc_args, dec_args = mlp_architecture_ala_iclr_18_small(n_pc_points, bneck_size)
         train_dir = create_dir(osp.join(top_out_dir, experiment_name))
 
         conf = Conf(n_input = [n_pc_points, 3],

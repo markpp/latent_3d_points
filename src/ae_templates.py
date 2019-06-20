@@ -75,7 +75,7 @@ def default_train_params(single_class=True):
               'denoising': False,
               'learning_rate': 0.0005,
               'z_rotate': False,
-              'saver_step': 5000,
+              'saver_step': 1000,
               'loss_display_step': 25
               }
 

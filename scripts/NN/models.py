@@ -1,25 +1,29 @@
 # import the necessary packages
-from keras.models import Sequential
-from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
-from keras.layers.core import Activation
-from keras.layers.core import Dropout
-from keras.layers.core import Dense
-from keras.layers import Flatten
-from keras.layers import Input
-from keras.models import Model
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import Dropout
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Flatten
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model
+from tensorflow.keras.regularizers import l2
 
 def create_mlp(in_dim, out_dim, regress=False):
+	size_factor = 1
 	# define our MLP network
 	model = Sequential()
-	model.add(Dense(32, input_dim=in_dim, activation="tanh"))
-	model.add(Dense(24, activation="tanh"))
+	model.add(Dense(24, input_dim=in_dim, activation="tanh"))
 	model.add(Dense(16, activation="tanh"))
-	model.add(Dense(10, activation="tanh"))
+	model.add(Dense(12, activation="tanh"))
+	model.add(Dropout(0.5))
+	model.add(Dense(8, activation="tanh"))
 
 	# check to see if the regression node should be added
 	if regress:
+		#model.add(Dropout(0.5))
 		model.add(Dense(out_dim))
 
 	# return our model

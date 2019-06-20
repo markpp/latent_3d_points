@@ -1,0 +1,23 @@
+                    batch_size: 128
+                 consistent_io: None
+                         debug: False
+                       decoder: decoder_with_fc_only
+                  decoder_args: {'b_norm_finish': False, 'layer_sizes': [128, 128, 3072], 'verbose': True, 'b_norm': False}
+                       encoder: encoder_with_convs_and_symmetry
+                  encoder_args: {'filter_sizes': [1], 'strides': [1], 'n_filters': [32, 64, 64, 128, 16], 'verbose': True, 'b_norm': True}
+               experiment_name: aug20mm_small_model_ct_kinect_emd_1024_16
+                 gauss_augment: None
+                 held_out_step: 50
+                  is_denoising: False
+               latent_vs_recon: 1.0
+                 learning_rate: 0.0005
+                          loss: emd
+             loss_display_step: 25
+                       n_input: [1024, 3]
+                      n_output: [1024, 3]
+                           n_z: None
+             saver_max_to_keep: None
+                    saver_step: 1000
+                     train_dir: ../data/aug20mm_small_model_ct_kinect_emd_1024_16
+               training_epochs: 100000
+                      z_rotate: False

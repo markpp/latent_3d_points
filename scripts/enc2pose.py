@@ -2,10 +2,13 @@
 # python cnn_regression.py --dataset Houses-dataset/Houses\ Dataset/
 
 # import the necessary packages
-from keras.optimizers import Adam
-from keras.models import model_from_json
-
+#from keras.optimizers import Adam
+#from keras.models import model_from_json
+import tensorflow
+from tensorflow.keras.models import model_from_json
+from tensorflow.keras.optimizers import Adam
 from NN import models
+
 import numpy as np
 import math
 from pyntcloud import PyntCloud
@@ -14,7 +17,25 @@ import json
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 TRAIN = True
+name = "ct_kin_20mm"
+
+def plot_history(histories, key='loss'):
+    plt.figure(figsize=(12,8))
+
+    for name, history in histories:
+        val = plt.plot(history.epoch, history.history['val_'+key],
+                       '--', label=name.title()+' Val')
+        plt.plot(history.epoch, history.history[key], color=val[0].get_color(),
+                 label=name.title()+' Train')
+
+    plt.xlabel('Epochs')
+    plt.ylabel(key.replace('_',' ').title())
+    plt.legend()
+
+    plt.xlim([0,max(history.epoch)])
+    plt.show()
 
 def pose2cloud(pose,filename):
     anno_points = []
@@ -45,7 +66,9 @@ def pose2json(pose,filename):
                        'z': float(orn[2]),
                        'w': float(orn[3])}
                 }
-        json.dump(data, outfile, indent=4)
+        out = []
+        out.append(data)
+        json.dump(out, outfile, indent=4)
 
 def vecs2quad(nf,nu,nl):
     m00, m01, m02 = nl[0], nl[1], nl[2]
@@ -107,12 +130,15 @@ def evaluate_point_normal(gts,preds):
     ax.set_ylabel('[m]')
     plt.savefig('err.png')
     plt.show()
+
 if __name__ == '__main__':
     """
     Main function for executing the .py script.
     Command:
         -p path/<filename>.npy
     """
+
+    '''
     x = np.load("output/latent.npy")
     y = np.load("output/anno.npy")
     names = np.load("output/names.npy")
@@ -122,37 +148,48 @@ if __name__ == '__main__':
     #test_y = y[:100,0]
     test_y = y[:testset_end,:]
     print(test_y[0])
+    '''
+    test_x = np.load("output/val_latent.npy")
+    test_y = np.load("output/val_anno.npy")
+    test_names = np.load("output/val_names.npy")
 
-    test_y = test_y.reshape(len(test_y),6)
-    train_x = x[testset_end:]
-    #train_y = y[100:,0]
-    train_y = y[testset_end:,:]
-    train_y = train_y.reshape(len(train_y),6)
-
+    train_x = np.load("output/train_latent.npy")
+    train_y = np.load("output/train_anno.npy")
+    train_names = np.load("output/train_names.npy")
+    #train_y = train_y.reshape(len(train_y),6)
     #do k-fold https://machinelearningmastery.com/evaluate-performance-deep-learning-models-keras/
+    opt = Adam(lr=1e-3, decay=1e-3 / 200)
     if TRAIN:
         model = models.create_mlp(16, 6, regress=True)
-        model.compile(loss="mean_squared_error", optimizer=Adam(lr=1e-3, decay=1e-3 / 100)) # mean_squared_error
+        model.compile(loss="mean_squared_error", optimizer=opt) # mean_squared_error
 
         # train the model
         print("[INFO] training model...")
         print("train_x {}, train_y {}, test_x {}, test_y {}".format(train_x.shape,train_y.shape,test_x.shape,test_y.shape))
-        model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=300, batch_size=128)
+        history = model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=1000, batch_size=64)
+
+        plot_history([('baseline', history)])
 
         # serialize model to JSON
         model_json = model.to_json()
-        with open("trained_model/nn_model.json", "w") as json_file:
+        with open("trained_model/{}_nn_model.json".format(name), "w") as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
-        model.save_weights("trained_model/nn_weights.h5")
+        model.save_weights("trained_model/{}_nn_weights.h5".format(name))
+
+        model.save('trained_model/nn_model_weights.h5')
     else:
+
         # load json and create model
-        json_file = open('trained_model/nn_model.json', 'r')
+        json_file = open('trained_model/{}_nn_model.json'.format(name), 'r')
         loaded_model_json = json_file.read()
         json_file.close()
         model = model_from_json(loaded_model_json)
-        model.load_weights("trained_model/nn_weights.h5")
-        model.compile(loss="mean_squared_error", optimizer=Adam(lr=1e-3, decay=1e-3 / 200)) # mean_squared_error
+        model.load_weights("trained_model/{}_nn_weights.h5".format(name))
+        model.compile(loss="mean_squared_error", optimizer=opt) # mean_squared_error
+
+        #model.load('trained_model/nn_model_weights.h5')
+
 
     #test_x = train_x
     #test_y = train_y
@@ -163,19 +200,21 @@ if __name__ == '__main__':
 
 
     print("[INFO] predicting...")
-    preds = model.predict(x)
+    preds = model.predict(test_x)
 
-    evaluate_point_normal(y, preds)
+    #evaluate_point_normal(test_y, preds)
 
-    ids = [0,1000]
+    ids = [0,50,100]
     for id in ids:
-        name = names[id][:-4]
+        print("testing on id {}".format(id))
+        name = test_names[id][:-4]
         #pose2cloud(preds[id],"output/pred-gt_{}.ply".format(names[id]))
 
-        pose2json(y[id], 'output/gt_{}.json'.format(names[id]))
-        pose2json(preds[id], 'output/pred_{}.json'.format(names[id]))
+        pose2json(test_y[id], 'output/{}_gt.json'.format(test_names[id]))
+        pose2json(preds[id], 'output/{}_pred.json'.format(test_names[id]))
 
-    np.set_printoptions(precision=3)
-    print(preds[id])
-    #print(test_y[id])
-    print(y[id])
+        np.set_printoptions(precision=3, suppress=True)
+        print("GT")
+        print(test_y[id])
+        print("prediction")
+        print(preds[id])

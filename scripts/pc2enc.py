@@ -9,8 +9,10 @@ from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
 n_points = 1024
-model_dir = 'trained_model/zero_dist_sampling'
-restore_epoch = 20000
+model_dir = 'trained_model/hanging/ct_kin_20mm'
+restore_epoch = 10000
+
+dataset = "val"
 
 if __name__ == '__main__':
     """
@@ -37,10 +39,13 @@ if __name__ == '__main__':
         pcs[idx, :, :] = cloud.points[:n_points]
 
         # load annotation
-        pose_path = pc_path[:-9]+".json"
+        pose_path = pc_path[:-4]+".json"
         #print(pose_path)
-        with open(pose_path) as pose_file:
-            jp = json.load(pose_file)
+        with open(pose_path, 'r') as data_file:
+            json_data = data_file.read()
+            jps = json.loads(json_data)
+            jp = jps[0]
+            '''
             p = [float(jp["pos"]["x"]),float(jp["pos"]["y"]),float(jp["pos"]["z"])]
             x, y, z, w = float(jp["orn"]["x"]), float(jp["orn"]["y"]), float(jp["orn"]["z"]), float(jp["orn"]["w"])
             # forward vector
@@ -58,11 +63,14 @@ if __name__ == '__main__':
 
             #n = [nlx, nly, nlz]
             pose = [p[0], p[1], p[2], nlx, nly, nlz]
+            '''
+            pose = [float(jp["pos"]["x"]), float(jp["pos"]["y"]), float(jp["pos"]["z"]),
+                    float(jp["orn"]["x"]), float(jp["orn"]["y"]), float(jp["orn"]["z"])]
             anno.append(pose)
 
-    np.save("output/names",np.array(names))
-    np.save("output/anno",np.array(anno))
-    np.save("output/pcs",pcs)
+    np.save("output/{}_names".format(dataset),np.array(names))
+    np.save("output/{}_anno".format(dataset),np.array(anno))
+    np.save("output/{}_pcs".format(dataset),pcs)
 
     reset_tf_graph()
     ae_configuration = model_dir+'/configuration'
@@ -76,4 +84,4 @@ if __name__ == '__main__':
     latent_codes = ae.get_latent_codes(pcs)
 
     print(latent_codes.shape)
-    np.save("output/latent",np.array(latent_codes))
+    np.save("output/{}_latent".format(dataset),np.array(latent_codes))

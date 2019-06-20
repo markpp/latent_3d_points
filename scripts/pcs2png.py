@@ -35,13 +35,13 @@ def plot_3d_point_cloud(x, y, z, show=True, show_axis=True, in_fixed_range=False
 
 if __name__ == '__main__':
 
-    pcs = np.load("output/pcs.npy")
+    pcs = np.load("output/val_pcs.npy")
 
     print(pcs.shape)
     print(pcs[0].shape)
 
     views = []
-    for idx, pc in enumerate(pcs[:]):
+    for idx, pc in enumerate(pcs[:1]):
         fig = plot_3d_point_cloud(pc[:, 0], pc[:, 1], pc[:, 2],
                                   show = False, in_fixed_range=True);
         data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
@@ -49,4 +49,4 @@ if __name__ == '__main__':
         if idx % 100 == 0:
             print("done with idx: {}".format(idx))
     print(views[0].shape)
-    np.save("output/views.npy", np.array(views))
+    np.save("output/val_views.npy", np.array(views))

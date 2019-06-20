@@ -8,8 +8,9 @@ from latent_3d_points.src.autoencoder import Configuration as Conf
 from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
-model_dir = 'trained_model/zeroedrot'
-restore_epoch = 20000
+model_dir = 'trained_model/ct_kin'
+restore_epoch = 2000
+dataset = "val"
 
 def points2file(points,filename):
     df = pd.DataFrame(points,columns=['x', 'y', 'z'])
@@ -31,8 +32,8 @@ if __name__ == '__main__':
 
     enc = np.load(args["enc"])
     '''
-    enc = np.load("output/latent.npy")
-    names = np.load("output/names.npy")
+    enc = np.load("output/{}_latent.npy".format(dataset))
+    names = np.load("output/{}_names.npy".format(dataset))
 
 
     reset_tf_graph()
