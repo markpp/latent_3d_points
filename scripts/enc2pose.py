@@ -8,6 +8,7 @@ import tensorflow
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.optimizers import Adam
 from NN import models
+import vg
 
 import numpy as np
 import math
@@ -19,7 +20,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 TRAIN = True
-name = "ct_kin_20mm"
+name = "ct_kin"
 
 def plot_history(histories, key='loss'):
     plt.figure(figsize=(12,8))
@@ -113,23 +114,37 @@ def vecs2quad(nf,nu,nl):
 
 def evaluate_point_normal(gts,preds):
     #diff = np.abs(gts-preds)
-    res = []
+    pos = []
+    ang = []
     for i in range(len(gts)):
-        diff = np.abs(gts[i]-preds[i])
-        res.append(diff[:3])
+        diff = gts[i]-preds[i]
+        pos.append(diff[:3])
         #angles = [np.arctan2(math.sqrt(diff[4]*diff[4]+diff[5]*diff[5]), diff[3]),
         #          np.arctan2(math.sqrt(diff[3]*diff[3]+diff[5]*diff[5]), diff[4]),
         #          np.arctan2(math.sqrt(diff[4]*diff[4]+diff[3]*diff[3]), diff[5])]
-        #res.append(np.concatenate((diff,angles),axis=0))
-
-    #df = pd.DataFrame(np.array(res),columns=['dx', 'dy', 'dz', 'dnx', 'dny', 'dnz', 'ax', 'ay', 'az'])
-    df = pd.DataFrame(np.array(res),columns=['dx', 'dy', 'dz'])
-    print(df.describe())
+        angles = [vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([1,0,0]), look=vg.basis.y, units="deg"),
+                  vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([0,1,0]), look=vg.basis.z, units="deg"),
+                  vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([0,0,1]), look=vg.basis.x, units="deg")]
+        ang.append(angles)
+    '''
+    df = pd.DataFrame(np.array(pos),columns=['dx', 'dy', 'dz'])
+    #print(df.describe())
     ax = sns.boxplot(data=df)
     ax.set_title('Absolute error compared to demo')
     ax.set_ylabel('[m]')
-    plt.savefig('err.png')
+    plt.savefig('pos_err.png')
     plt.show()
+    '''
+    ang_df = pd.DataFrame(np.array(ang),columns=['ax', 'ay', 'az'])
+    #print(ang_df.describe())
+    ax = sns.boxplot(data=ang_df)
+    ax.set_title('Absolute error compared to demo')
+    ax.set_ylabel('[deg]')
+    plt.savefig('ang_err.png')
+    plt.show()
+
+
+
 
 if __name__ == '__main__':
     """
@@ -166,7 +181,7 @@ if __name__ == '__main__':
         # train the model
         print("[INFO] training model...")
         print("train_x {}, train_y {}, test_x {}, test_y {}".format(train_x.shape,train_y.shape,test_x.shape,test_y.shape))
-        history = model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=1000, batch_size=64)
+        history = model.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=500, batch_size=64)
 
         plot_history([('baseline', history)])
 
@@ -202,7 +217,7 @@ if __name__ == '__main__':
     print("[INFO] predicting...")
     preds = model.predict(test_x)
 
-    #evaluate_point_normal(test_y, preds)
+    evaluate_point_normal(test_y, preds)
 
     ids = [0,50,100]
     for id in ids:

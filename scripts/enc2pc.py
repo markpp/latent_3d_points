@@ -8,9 +8,10 @@ from latent_3d_points.src.autoencoder import Configuration as Conf
 from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
-model_dir = 'trained_model/ct_kin'
+model_dir = 'trained_model/hanging/ct_kin'
 restore_epoch = 2000
-dataset = "val"
+
+dataset = "train"
 
 def points2file(points,filename):
     df = pd.DataFrame(points,columns=['x', 'y', 'z'])

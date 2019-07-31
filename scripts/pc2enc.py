@@ -9,10 +9,10 @@ from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
 n_points = 1024
-model_dir = 'trained_model/hanging/ct_kin_20mm'
-restore_epoch = 10000
+model_dir = 'trained_model/hanging/ct_kin'
+restore_epoch = 2000
 
-dataset = "val"
+dataset = "train"
 
 if __name__ == '__main__':
     """
