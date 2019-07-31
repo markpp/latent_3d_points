@@ -11,7 +11,7 @@ from latent_3d_points.src.tf_utils import reset_tf_graph
 model_dir = 'trained_model/hanging/ct_hanging_emd_1024_16'
 restore_epoch = 1000
 
-dataset = "train"
+dataset = "val"
 
 def points2file(points,filename):
     df = pd.DataFrame(points,columns=['x', 'y', 'z'])
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     enc = np.load(args["enc"])
     '''
-    enc = np.load("output/{}_latent.npy".format(dataset))
+    pcs = np.load("output/{}_pcs.npy".format(dataset))
     names = np.load("output/{}_names.npy".format(dataset))
 
 
@@ -46,9 +46,18 @@ if __name__ == '__main__':
 
     ae.restore_model(model_dir, restore_epoch, verbose=True)
 
-    reconstructions = ae.decode(enc)
+    recs = []
+    rec_losses = []
+    for pc in pcs:
+        pc = np.expand_dims(pc, axis=0)
+        rec, l = ae.reconstruct(pc, GT=pc, compute_loss=True)
+        recs.append(rec)
+        rec_losses.append(l)
 
-    for id in range(0,3):
+    np.save("output/{}_rec_loss".format(dataset),np.array(rec_losses))
+    np.save("output/{}_recs".format(dataset),np.array(recs))
+
+    #for id in range(0,3):
     #for id in range(0,len(reconstructions)):
-        print(names[id])
-        points2file(reconstructions[id],"output/rec_{}".format(names[id]))
+        #print(names[id])
+        #points2file(reconstructions[id],"output/rec_{}".format(names[id]))

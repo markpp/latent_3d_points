@@ -7,7 +7,7 @@
 import tensorflow
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.optimizers import Adam
-from NN import models
+from tools import simple_nn
 import vg
 
 import numpy as np
@@ -19,7 +19,7 @@ import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-TRAIN = True
+TRAIN = False
 name = "ct_kin"
 
 def plot_history(histories, key='loss'):
@@ -115,35 +115,49 @@ def vecs2quad(nf,nu,nl):
 def evaluate_point_normal(gts,preds):
     #diff = np.abs(gts-preds)
     pos = []
+    norm = []
     ang = []
     for i in range(len(gts)):
         diff = gts[i]-preds[i]
         pos.append(diff[:3])
+        norm.append(diff[3:])
         #angles = [np.arctan2(math.sqrt(diff[4]*diff[4]+diff[5]*diff[5]), diff[3]),
         #          np.arctan2(math.sqrt(diff[3]*diff[3]+diff[5]*diff[5]), diff[4]),
         #          np.arctan2(math.sqrt(diff[4]*diff[4]+diff[3]*diff[3]), diff[5])]
-        angles = [vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([1,0,0]), look=vg.basis.y, units="deg"),
-                  vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([0,1,0]), look=vg.basis.z, units="deg"),
-                  vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([0,0,1]), look=vg.basis.x, units="deg")]
+        angles = np.array([vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([1,0,0]), look=vg.basis.y, units="deg"),
+                           vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([0,1,0]), look=vg.basis.z, units="deg"),
+                           vg.signed_angle(np.array([diff[3],diff[4],diff[5]]),np.array([0,0,1]), look=vg.basis.x, units="deg")])
         ang.append(angles)
-    '''
-    df = pd.DataFrame(np.array(pos),columns=['dx', 'dy', 'dz'])
+
+        '''
+        gt_ang = np.array([vg.signed_angle(np.array([gts[i,3],gts[i,4],gts[i,5]]), np.array([1,0,0]), look=vg.basis.y, units="deg"),
+                           vg.signed_angle(np.array([gts[i,3],gts[i,4],gts[i,5]]), np.array([0,1,0]), look=vg.basis.z, units="deg"),
+                           vg.signed_angle(np.array([gts[i,3],gts[i,4],gts[i,5]]), np.array([0,0,1]), look=vg.basis.x, units="deg")])
+        pred_ang = np.array([vg.signed_angle(np.array([preds[i,3],preds[i,4],preds[i,5]]), np.array([1,0,0]), look=vg.basis.y, units="deg"),
+                             vg.signed_angle(np.array([preds[i,3],preds[i,4],preds[i,5]]), np.array([0,1,0]), look=vg.basis.z, units="deg"),
+                             vg.signed_angle(np.array([preds[i,3],preds[i,4],preds[i,5]]) ,np.array([0,0,1]), look=vg.basis.x, units="deg")])
+        ang.append(pred_ang-gt_ang)
+        '''
+
+    df = pd.DataFrame(np.concatenate((np.array(pos),np.array(norm)), axis = 1),columns=['dx', 'dy', 'dz','dnx', 'dny', 'dnz'])
     #print(df.describe())
     ax = sns.boxplot(data=df)
     ax.set_title('Absolute error compared to demo')
     ax.set_ylabel('[m]')
-    plt.savefig('pos_err.png')
-    plt.show()
-    '''
-    ang_df = pd.DataFrame(np.array(ang),columns=['ax', 'ay', 'az'])
+    plt.savefig('plots/pos_norm_err.png')
+    #plt.show()
+
+    ang_df = pd.DataFrame(np.array(ang),columns=['dax', 'day', 'daz'])
     #print(ang_df.describe())
     ax = sns.boxplot(data=ang_df)
     ax.set_title('Absolute error compared to demo')
     ax.set_ylabel('[deg]')
-    plt.savefig('ang_err.png')
-    plt.show()
+    plt.savefig('plots/ang_err.png')
+    #plt.show()
 
 
+    np.save("output/{}_pos_error".format("val"),np.array(pos))
+    np.save("output/{}_norm_error".format("val"),np.array(norm))
 
 
 if __name__ == '__main__':
@@ -175,7 +189,7 @@ if __name__ == '__main__':
     #do k-fold https://machinelearningmastery.com/evaluate-performance-deep-learning-models-keras/
     opt = Adam(lr=1e-3, decay=1e-3 / 200)
     if TRAIN:
-        model = models.create_mlp(16, 6, regress=True)
+        model = simple_nn.create_mlp(16, 6, regress=True)
         model.compile(loss="mean_squared_error", optimizer=opt) # mean_squared_error
 
         # train the model
@@ -191,7 +205,6 @@ if __name__ == '__main__':
             json_file.write(model_json)
         # serialize weights to HDF5
         model.save_weights("trained_model/{}_nn_weights.h5".format(name))
-
         model.save('trained_model/nn_model_weights.h5')
     else:
 
@@ -219,6 +232,7 @@ if __name__ == '__main__':
 
     evaluate_point_normal(test_y, preds)
 
+    '''
     ids = [0,50,100]
     for id in ids:
         print("testing on id {}".format(id))
@@ -233,3 +247,4 @@ if __name__ == '__main__':
         print(test_y[id])
         print("prediction")
         print(preds[id])
+    '''

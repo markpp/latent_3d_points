@@ -9,8 +9,8 @@ from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
 n_points = 1024
-model_dir = 'trained_model/hanging/ct_kin'
-restore_epoch = 2000
+model_dir = 'trained_model/hanging/ct_hanging_emd_1024_16'
+restore_epoch = 1000
 
 dataset = "train"
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         pcs[idx, :, :] = cloud.points[:n_points]
 
         # load annotation
-        pose_path = pc_path[:-4]+".json"
+        pose_path = pc_path[:-13]+".json" # pc_path[:-4]
         #print(pose_path)
         with open(pose_path, 'r') as data_file:
             json_data = data_file.read()
