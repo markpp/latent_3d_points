@@ -1,5 +1,5 @@
 import numpy as np
-import time
+import time 
 
 from pyntcloud import PyntCloud
 import pandas as pd
@@ -42,7 +42,7 @@ if __name__ == '__main__':
             loss_hist = simple_nn.train(input_dim, output_dim, train_x, train_y, test_x, test_y, name)
             plot.plot_loss(loss_hist, name)
         model = simple_nn.load(name)
-
+            
         # make predictions on the test data
         train_loss = model.evaluate(train_x, train_y, verbose=0)
         val_loss = model.evaluate(test_x, test_y, verbose=0)

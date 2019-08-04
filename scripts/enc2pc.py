@@ -8,10 +8,7 @@ from latent_3d_points.src.autoencoder import Configuration as Conf
 from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
-model_dir = 'trained_model/hanging/ct_hanging_emd_1024_16'
-restore_epoch = 1000
-
-dataset = "train"
+from settings import *
 
 def points2file(points,filename):
     df = pd.DataFrame(points,columns=['x', 'y', 'z'])
@@ -33,18 +30,18 @@ if __name__ == '__main__':
 
     enc = np.load(args["enc"])
     '''
-    enc = np.load("output/{}_latent.npy".format(dataset))
-    names = np.load("output/{}_names.npy".format(dataset))
+    enc = np.load("output/{}_latent.npy".format(DATASET))
+    names = np.load("output/{}_names.npy".format(DATASET))
 
 
     reset_tf_graph()
-    ae_configuration = model_dir+'/configuration'
+    ae_configuration = MODEL_DIR+'/configuration'
     ae_conf = Conf.load(ae_configuration)
     ae_conf.encoder_args['verbose'] = False
     ae_conf.decoder_args['verbose'] = False
     ae = PointNetAutoEncoder(ae_conf.experiment_name, ae_conf)
 
-    ae.restore_model(model_dir, restore_epoch, verbose=True)
+    ae.restore_model(MODEL_DIR, RESTORE_EPOCH, verbose=True)
 
     reconstructions = ae.decode(enc)
 

@@ -17,9 +17,9 @@ if __name__ == '__main__':
     n_pc_points = 1024               # Number of points per model.
     bneck_size = 16                  # Bottleneck-AE size
     ae_loss = 'emd'                  # Loss to optimize: 'emd' or 'chamfer'
-    experiment_name = 'ct_hanging_{}_{}_{}'.format(ae_loss,n_pc_points,bneck_size)
-    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/ct_crops/train/', n_threads=8, file_ending='.ply', verbose=True)
-    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/ct_crops/val/', n_threads=8, file_ending='.ply', verbose=True)
+    experiment_name = 'ct_kin_hanging_{}_{}_{}'.format(ae_loss,n_pc_points,bneck_size)
+    train_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/ct_kin/train/', n_threads=8, file_ending='.ply', verbose=True)
+    val_pc_data = load_all_point_clouds_under_folder('/home/dmri/Documents/github/latent_3d_points/data/datasets/ct_kin/val/', n_threads=8, file_ending='.ply', verbose=True)
     print("batch size should be < {} and {}".format(train_pc_data.num_examples,val_pc_data.num_examples))
 
     if TRAIN:

@@ -7,9 +7,12 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+from settings import *
+
 enable_plot = 1
 enable_pca = 1
 enable_kde = 0
+enable_pose = 0
 
 def plot_sets(set_train, set_val, name):
     _, num_dim = set_train.shape
@@ -48,20 +51,25 @@ if __name__ == '__main__':
     ## Load data ##
     ###############
     #train_pcs = np.load("output/train_pcs.npy")
-    #val_pcs = np.load("output/val_pcs.npy")
+    val_pcs = np.load("output/{}_pcs.npy".format(DATASET))
+    print(val_pcs.shape)
 
+    #train_recs = np.load("output/train_recs.npy")
+    val_recs = np.load("output/{}_recs.npy".format(DATASET))[:,0,:,:]
+    print(val_recs.shape)
     #train_names = np.load("output/train_names.npy")
-    #val_names = np.load("output/val_names.npy")
+    #vals_names = np.load("output/vals_names.npy")
 
     train_latent = np.load("output/train_latent.npy")
-    val_latent = np.load("output/val_latent.npy")
+    val_latent = np.load("output/{}_latent.npy".format(DATASET))
 
     #'''
     train_rec_loss = np.load("output/train_rec_loss.npy")
-    val_rec_loss = np.load("output/val_rec_loss.npy")
+    val_rec_loss = np.load("output/{}_rec_loss.npy".format(DATASET))
 
-    val_pos_error = np.mean(np.absolute(np.load("output/val_pos_error.npy")), axis = 1)
-    val_norm_error = np.mean(np.absolute(np.load("output/val_norm_error.npy")), axis = 1)
+    if enable_pose:
+        val_pos_error = np.mean(np.absolute(np.load("output/{}_pos_error.npy".format(DATASET))), axis = 1)
+        val_norm_error = np.mean(np.absolute(np.load("output/{}_norm_error.npy".format(DATASET))), axis = 1)
 
     n_train = train_latent.shape[0]
     n_val = val_latent.shape[0]
@@ -83,6 +91,20 @@ if __name__ == '__main__':
     val_dist = []
     for v in val_latent:
         val_dist.append(np.array([np.linalg.norm(v-t) for t in train_latent]).min()*25)
+    val_dist = np.array(val_dist)
+    # find best and worst matches
+    idx_b2w = np.argsort(val_dist)
+
+    print(val_dist[idx_b2w[:3]])
+    print(val_dist[idx_b2w[-3:]])
+
+    for b_id in idx_b2w[:3]:
+        points2file(val_pcs[b_id],"output/pcs/val_org_best_{}.ply".format(b_id))
+        points2file(val_recs[b_id],"output/pcs/val_rec_best_{}.ply".format(b_id))
+
+    for w_id in idx_b2w[-3:]:
+        points2file(val_pcs[w_id],"output/pcs/val_org_worst_{}.ply".format(w_id))
+        points2file(val_recs[w_id],"output/pcs/val_rec_worst_{}.ply".format(w_id))
 
     if enable_kde:
         # create density map using train samples and use that
@@ -128,8 +150,9 @@ if __name__ == '__main__':
         df['Error'] = np.concatenate((train_rec_loss,val_rec_loss))
         df['Dataset'] = np.concatenate((['train'] * n_train, ['val'] * n_val)) #np.concatenate((np.zeros(n_train),np.ones(n_val)))
         df['Distance'] = np.concatenate((np.ones(n_train)*5,np.array(val_dist)))
-        df['PosError'] = np.concatenate((np.ones(n_train)*5,np.array(val_pos_error)*600))
-        df['NormError'] = np.concatenate((np.ones(n_train)*5,np.array(val_norm_error)*60))
+        if enable_pose:
+            df['PosError'] = np.concatenate((np.ones(n_train)*5,np.array(val_pos_error)*600))
+            df['NormError'] = np.concatenate((np.ones(n_train)*5,np.array(val_norm_error)*60))
 
         sns.scatterplot(x="pc0", y="pc1", data=df,
                         hue="Dataset", palette=["blue","green"], size="Error",
@@ -142,22 +165,26 @@ if __name__ == '__main__':
                         sizes=(df['Distance'].min(), df['Distance'].max()))
         plt.savefig('plots/{}.png'.format("train_test_pca_latent_dist"))
 
-        plt.clf()
-        sns.scatterplot(x="pc0", y="pc1", data=df,
-                        hue="Dataset", palette=["blue","green"], size="PosError",
-                        sizes=(df['PosError'].min(), df['PosError'].max()))
-        plt.savefig('plots/{}.png'.format("train_test_pca_pos_error"))
+        if enable_pose:
+            plt.clf()
+            sns.scatterplot(x="pc0", y="pc1", data=df,
+                            hue="Dataset", palette=["blue","green"], size="PosError",
+                            sizes=(df['PosError'].min(), df['PosError'].max()))
+            plt.savefig('plots/{}.png'.format("train_test_pca_pos_error"))
 
-        plt.clf()
-        sns.scatterplot(x="pc0", y="pc1", data=df,
-                        hue="Dataset", palette=["blue","green"], size="NormError",
-                        sizes=(df['NormError'].min(), df['NormError'].max()))
-        plt.savefig('plots/{}.png'.format("train_test_pca_norm_error"))
+            plt.clf()
+            sns.scatterplot(x="pc0", y="pc1", data=df,
+                            hue="Dataset", palette=["blue","green"], size="NormError",
+                            sizes=(df['NormError'].min(), df['NormError'].max()))
+            plt.savefig('plots/{}.png'.format("train_test_pca_norm_error"))
 
         cmap = sns.cubehelix_palette(start=0, light=1, as_cmap=True)
-        sns.jointplot(x='pc0', y='pc1', data=df, kind="kde", height=7, space=0)
-        plt.savefig('plots/{}.png'.format("train_test_pca_density"))
+        sns.jointplot(x='pc0', y='pc1', data=df[(df['Dataset']=='train')], kind="kde", height=7, space=0)
+        plt.savefig('plots/{}.png'.format("train_pca_density"))
 
+        cmap = sns.cubehelix_palette(start=0, rot=-.4, light=1, as_cmap=True)
+        sns.jointplot(x='pc0', y='pc1', data=df[(df['Dataset']=='val')], kind="kde", height=7, space=0)
+        plt.savefig('plots/{}.png'.format("test_pca_density"))
 
         '''
 

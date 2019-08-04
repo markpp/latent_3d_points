@@ -8,11 +8,11 @@ from latent_3d_points.src.autoencoder import Configuration as Conf
 from latent_3d_points.src.point_net_ae import PointNetAutoEncoder
 from latent_3d_points.src.tf_utils import reset_tf_graph
 
-n_points = 1024
-model_dir = 'trained_model/hanging/ct_hanging_emd_1024_16'
-restore_epoch = 1000
+from settings import *
 
-dataset = "train"
+n_points = 1024
+
+enable_anno = False
 
 if __name__ == '__main__':
     """
@@ -38,50 +38,52 @@ if __name__ == '__main__':
         cloud = PyntCloud.from_file(pc_path)
         pcs[idx, :, :] = cloud.points[:n_points]
 
-        # load annotation
-        pose_path = pc_path[:-13]+".json" # pc_path[:-4]
-        #print(pose_path)
-        with open(pose_path, 'r') as data_file:
-            json_data = data_file.read()
-            jps = json.loads(json_data)
-            jp = jps[0]
-            '''
-            p = [float(jp["pos"]["x"]),float(jp["pos"]["y"]),float(jp["pos"]["z"])]
-            x, y, z, w = float(jp["orn"]["x"]), float(jp["orn"]["y"]), float(jp["orn"]["z"]), float(jp["orn"]["w"])
-            # forward vector
-            nfx = 2 * (x*z + w*y)
-            nfy = 2 * (y*z - w*x)
-            nfz = 1 - 2 * (x*x + y*y)
-            # up vector
-            nux = 2 * (x*y - w*z)
-            nuy = 1 - 2 * (x*x + z*z)
-            nuz = 2 * (y*z + w*x)
-            # left vector
-            nlx = 1 - 2 * (y*y + z*z)
-            nly = 2 * (x*y + w*z)
-            nlz = 2 * (x*z - w*y)
+        if enable_anno:
+            # load annotation
+            pose_path = pc_path[:-13]+".json" # pc_path[:-4]
+            #print(pose_path)
+            with open(pose_path, 'r') as data_file:
+                json_data = data_file.read()
+                jps = json.loads(json_data)
+                jp = jps[0]
+                '''
+                p = [float(jp["pos"]["x"]),float(jp["pos"]["y"]),float(jp["pos"]["z"])]
+                x, y, z, w = float(jp["orn"]["x"]), float(jp["orn"]["y"]), float(jp["orn"]["z"]), float(jp["orn"]["w"])
+                # forward vector
+                nfx = 2 * (x*z + w*y)
+                nfy = 2 * (y*z - w*x)
+                nfz = 1 - 2 * (x*x + y*y)
+                # up vector
+                nux = 2 * (x*y - w*z)
+                nuy = 1 - 2 * (x*x + z*z)
+                nuz = 2 * (y*z + w*x)
+                # left vector
+                nlx = 1 - 2 * (y*y + z*z)
+                nly = 2 * (x*y + w*z)
+                nlz = 2 * (x*z - w*y)
 
-            #n = [nlx, nly, nlz]
-            pose = [p[0], p[1], p[2], nlx, nly, nlz]
-            '''
-            pose = [float(jp["pos"]["x"]), float(jp["pos"]["y"]), float(jp["pos"]["z"]),
-                    float(jp["orn"]["x"]), float(jp["orn"]["y"]), float(jp["orn"]["z"])]
-            anno.append(pose)
+                #n = [nlx, nly, nlz]
+                pose = [p[0], p[1], p[2], nlx, nly, nlz]
+                '''
+                pose = [float(jp["pos"]["x"]), float(jp["pos"]["y"]), float(jp["pos"]["z"]),
+                        float(jp["orn"]["x"]), float(jp["orn"]["y"]), float(jp["orn"]["z"])]
+                anno.append(pose)
 
-    np.save("output/{}_names".format(dataset),np.array(names))
-    np.save("output/{}_anno".format(dataset),np.array(anno))
-    np.save("output/{}_pcs".format(dataset),pcs)
+    if enable_anno:
+        np.save("output/{}_anno".format(DATASET),np.array(anno))
+    np.save("output/{}_pcs".format(DATASET),pcs)
+    np.save("output/{}_names".format(DATASET),np.array(names))
 
     reset_tf_graph()
-    ae_configuration = model_dir+'/configuration'
+    ae_configuration = MODEL_DIR+'/configuration'
     ae_conf = Conf.load(ae_configuration)
     ae_conf.encoder_args['verbose'] = False
     ae_conf.decoder_args['verbose'] = False
     ae = PointNetAutoEncoder(ae_conf.experiment_name, ae_conf)
 
-    ae.restore_model(model_dir, restore_epoch, verbose=True)
+    ae.restore_model(MODEL_DIR, RESTORE_EPOCH, verbose=True)
 
     latent_codes = ae.get_latent_codes(pcs)
 
     print(latent_codes.shape)
-    np.save("output/{}_latent".format(dataset),np.array(latent_codes))
+    np.save("output/{}_latent".format(DATASET),np.array(latent_codes))
