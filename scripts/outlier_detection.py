@@ -11,7 +11,7 @@ from settings import *
 
 enable_plot = 1
 enable_pca = 1
-enable_kde = 0
+enable_kde = 1
 enable_pose = 0
 
 def plot_sets(set_train, set_val, name):
@@ -19,9 +19,9 @@ def plot_sets(set_train, set_val, name):
 
     if num_dim == 2:
         plt.figure(figsize=(6, 6))
-        plt.scatter(set_train[:, 0], set_train[:, 1], c='r',
+        plt.scatter(set_train[:, 0], set_train[:, 1], marker = '.', c='b',
                     alpha=.4, s=5)
-        plt.scatter(set_val[:, 0], set_val[:, 1], c='b',
+        plt.scatter(set_val[:, 0], set_val[:, 1], c='g',
                     alpha=.4, s=5)
 
     else:
@@ -29,8 +29,8 @@ def plot_sets(set_train, set_val, name):
         fig, axs = plt.subplots(figsize=(12, 14), nrows=num_dim)
         fig.subplots_adjust(left = 0.02, right = 0.98, hspace = 0.4)
         for id in range(num_dim):
-            sns.distplot(set_train[:,id], hist=False, rug=True, color="r", ax=axs[id], label = "train");
-            sns.distplot(set_val[:,id], hist=False, rug=True, color="b", ax=axs[id], label = "val");
+            sns.distplot(set_train[:,id], hist=False, rug=True, color="b", ax=axs[id], label = "train");
+            sns.distplot(set_val[:,id], hist=False, rug=True, color="g", ax=axs[id], label = "val");
             axs[id].yaxis.set_visible(False)
             axs[id].set_title("dim. {}".format(id))
 
@@ -70,6 +70,7 @@ if __name__ == '__main__':
     if enable_pose:
         val_pos_error = np.mean(np.absolute(np.load("output/{}_pos_error.npy".format(DATASET))), axis = 1)
         val_norm_error = np.mean(np.absolute(np.load("output/{}_norm_error.npy".format(DATASET))), axis = 1)
+        # make train pose error
 
     n_train = train_latent.shape[0]
     n_val = val_latent.shape[0]
@@ -140,12 +141,6 @@ if __name__ == '__main__':
     ## Plots ##
     ###########
     if enable_plot:
-        # plot distribution of train and test sets
-        plot_sets(train_latent[:], val_latent[:], "train_test_latent")
-
-        if enable_pca:
-            plot_sets(train_pca[:,:2], val_pca[:,:2], "train_test_pca")
-
         df = pd.DataFrame(np.concatenate((train_pca,val_pca)),columns=['pc0', 'pc1'])
         df['Error'] = np.concatenate((train_rec_loss,val_rec_loss))
         df['Dataset'] = np.concatenate((['train'] * n_train, ['val'] * n_val)) #np.concatenate((np.zeros(n_train),np.ones(n_val)))
@@ -153,6 +148,34 @@ if __name__ == '__main__':
         if enable_pose:
             df['PosError'] = np.concatenate((np.ones(n_train)*5,np.array(val_pos_error)*600))
             df['NormError'] = np.concatenate((np.ones(n_train)*5,np.array(val_norm_error)*60))
+
+        # plot distribution of train and test sets
+        plot_sets(train_latent[:], val_latent[:], "train_test_latent")
+        plt.clf()
+
+        if enable_pca:
+            plot_sets(train_pca[:,:2], val_pca[:,:2], "train_test_pca")
+            plt.clf()
+
+        # heat map
+        x_res, y_res = 60, 60
+        train_rec_map = np.zeros((y_res, x_res), dtype=float)
+        #print(train_rec_map.shape)
+        for r, j in enumerate(np.linspace(1.0, -1.0, num=y_res)):
+            for c, i in enumerate(np.linspace(-1.0, 1.0, num=x_res)):
+                #convert to range
+                val = np.array([i, j])
+                # find best match
+                match_idx = np.array([np.linalg.norm(pca-val) for pca in train_pca[:,:2]]).argmin()
+
+                train_rec_map[r,c] = train_rec_loss[match_idx]
+
+        plt.imshow(train_rec_map, cmap='viridis')
+        plt.colorbar()
+        plt.savefig('plots/{}.png'.format("train_rec_loss_heat"))
+
+
+        plt.clf()
 
         sns.scatterplot(x="pc0", y="pc1", data=df,
                         hue="Dataset", palette=["blue","green"], size="Error",
@@ -178,12 +201,14 @@ if __name__ == '__main__':
                             sizes=(df['NormError'].min(), df['NormError'].max()))
             plt.savefig('plots/{}.png'.format("train_test_pca_norm_error"))
 
-        cmap = sns.cubehelix_palette(start=0, light=1, as_cmap=True)
-        sns.jointplot(x='pc0', y='pc1', data=df[(df['Dataset']=='train')], kind="kde", height=7, space=0)
+        density_train = sns.jointplot(x='pc0', y='pc1', data=df[(df['Dataset']=='train')], kind="kde", height=7, space=0)
+        density_train.ax_marg_x.set_xlim(-1.0, 1.0)
+        density_train.ax_marg_y.set_ylim(-1.0, 1.0)
         plt.savefig('plots/{}.png'.format("train_pca_density"))
 
-        cmap = sns.cubehelix_palette(start=0, rot=-.4, light=1, as_cmap=True)
-        sns.jointplot(x='pc0', y='pc1', data=df[(df['Dataset']=='val')], kind="kde", height=7, space=0)
+        density_test = sns.jointplot(x='pc0', y='pc1', data=df[(df['Dataset']=='val')], kind="kde", height=7, space=0, color="g")
+        density_test.ax_marg_x.set_xlim(-1.0, 1.0)
+        density_test.ax_marg_y.set_ylim(-1.0, 1.0)
         plt.savefig('plots/{}.png'.format("test_pca_density"))
 
         '''

@@ -73,7 +73,7 @@ def default_train_params(single_class=True):
     params = {'batch_size': 128,
               'training_epochs': 100000,
               'denoising': False,
-              'learning_rate': 0.0005,
+              'learning_rate': 0.001,
               'z_rotate': False,
               'saver_step': 1000,
               'loss_display_step': 25
